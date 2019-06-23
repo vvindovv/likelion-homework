@@ -1,0 +1,8 @@
+{% extends 'base.html' %}
+{% block body %}
+<form action="{% url 'comment_edit' comment.id %}" method="POST">
+    {% csrf_token %}
+    수정할 내용 : <input type="text" name="body" value="{{ comment.body }}">
+    <input type="submit" value="제출">
+</form>
+{% endblock %}
