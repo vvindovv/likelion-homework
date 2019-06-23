@@ -3,6 +3,9 @@ from .models import Blog, Comment #모델 안에 있는 클래스를 읽어와�
 from django.utils import timezone
 from django.core.paginator import Paginator
 from django.contrib.auth.decorators import login_required
+from .forms import BlogPost
+from .forms import BlogEdit
+
 # Create your views here.
 def home(request):
     blogs = Blog.objects #우리가 admin에서 봤던 글 목록을 blogs라고 칭함
@@ -20,22 +23,29 @@ def new(request): #new.html띄워주는 함수
     return render(request, 'new.html')
 
 def create(request): #입력받은 내용을 데이터베이스에 넣어주는 함수
-    blog = Blog()
-    blog.title = request.GET['title']
-    blog.body = request.GET['body']
-    blog.pub_date = timezone.datetime.now()
-    blog.save()
-    return redirect('/blog/'+str(blog.id))
+    if request.method == "POST": #post가 들어온 경우 요청을 실행
+        form = BlogPost(request.POST)
+        if form.is_valid(): #form을 제대로 입력했는가?
+            post = form.save(commit=False) #모델객체를 반환 그러나 저장 x
+            post.pub_date = timezone.now()
+            post.save()
+            return redirect('home', pk=blog_id)
+    else: #get이 들어온경우 빈페이지 보여줌
+        form = BlogPost()
+    return render(request, 'new.html', {'form': form})
 
 def edit(request, blog_id):
     blog = get_object_or_404(Blog, pk = blog_id)
     if request.method == "POST":
-        blog.title = request.POST['title']
-        blog.body = request.POST['body']
-        blog.pub_date = timezone.datetime.now()
-        blog.save()
-        return redirect('/blog/'+str(blog.id))
-    return render(request, 'edit.html', {'blog' : blog})    
+        form =  BlogEdit(request.POST, instance=blog)
+        if form.is_valid():
+            post = form.save(commit = False)
+            post.pub_date = timezone.now()
+            post.save()
+            return redirect('home')
+    else:
+        form = BlogEdit(instance = blog)
+    return render(request, 'edit.html', {'form' : form})
 
 def delete(request, blog_id):
     blog = get_object_or_404(Blog, pk=blog_id)
@@ -78,3 +88,30 @@ def comment_delete(request, comment_id):
             comment.delete()
             return redirect('/blog/' + str(post_id))
     return HttpResponse('잘못된 접근입니다.') #잘못된경우 사용해서 보내줘야함
+
+
+def blogpost(request):
+    if request.method == "POST": #post가 들어온 경우 요청을 실행
+        form = BlogPost(request.POST)
+        if form.is_valid(): #form을 제대로 입력했는가?
+            post = form.save(commit=False) #모델객체를 반환 그러나 저장 x
+            post.pub_date = timezone.now()
+            post.save()
+            return redirect('home')
+    else: #get이 들어온경우 빈페이지 보여줌
+        form = BlogPost()
+    return render(request, 'new.html', {'form': form})
+
+def blogedit(request, blog_id):
+    blog = get_object_or_404(Blog, pk=blog_id)
+    if request.method == "POST":
+        form =  BlogEdit(request.POST, instance=blog)
+        if form.is_valid():
+            post = form.save(commit = False)
+            post.pub_date = timezone.now()
+            post.save()
+            return redirect('home')
+    else:
+        form = BlogEdit(instance = blog)
+    return render(request, 'edit.html', {'form' : form})
+
