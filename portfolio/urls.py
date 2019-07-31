@@ -5,5 +5,5 @@ from django.conf import settings
 from django.conf.urls.static import static
 
 urlpatterns = [
-    path('portfolio/', portfolio.views.portfolio, name="portfolio"),
+    path('', portfolio.views.portfolio, name="portfolio"),
 ]
